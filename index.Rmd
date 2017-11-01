@@ -1,13 +1,13 @@
 ---
-title: "I have the best titles"
-author: Your name here
-subtitle: Subtitle here if desired
+title: "Social Disparities of Sea Level Rise in Miami?"
+author: Hannah Stokes
+subtitle: Final Project GEO 503
 ---
 
 # Introduction
 My really awesome and complete introduction will go here.  
 
-> I know words.  I have the best words.  ~ Donald Trump
+> Quote here...
 
 # Materials and methods
 

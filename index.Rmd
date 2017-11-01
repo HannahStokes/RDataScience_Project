@@ -5,9 +5,8 @@ subtitle: Final Project GEO 503
 ---
 
 # Introduction
-My really awesome and complete introduction will go here.  
+For this final project, I am interested in exploring ways in which projected impacts of sea level rise (under different scenarios) along the US coast may demonstrate disparities in affected demographic groups. Depending on data availability and level of resolution, I am considering focusing on either the Miami metropolitan area or Puerto Rico. My inspiration for this project came from reading an article about how rising sea levels and flooding in Atlantic City is disproportionately affecting low-income residents, and the suggestion that this may be the case in other coastal US cities (Upton, 2017). Additionally, we have seen tremendous damage from hurricanes in the Caribbean and Gulf of Mexico in the past few weeks. The increasing frequency of strong hurricanes likely relates to climate change, and this will couple with rising sea levels in causing further damage to coasts and islands.
 
-> Quote here...
 
 # Materials and methods
 
@@ -83,4 +82,10 @@ Show tables, plots, etc. and describe them.
 What have you learned?  Are there any broader implications?
 
 # References
+Kulp, S., & Strauss, B. H. (2017). Rapid escalation of coastal flood exposure in US municipalities from sea
+level rise. Climate Change, 142, 477-489.
+
+Tebaldi, C., Strauss, B. H., & Zervas, C. E. (2012). Modelling sea level rise impacts on storm surges along US coasts. Environmental Research Letters, 7, 1-11. 
+
+Upton, J. (2017). The injustice of Atlantic City's floods.        http://reports.climatecentral.org/atlantic-city/sea-level-rise/
 

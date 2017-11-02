@@ -22,18 +22,41 @@ library(dplyr)
 library(ggplot2)
 library(maps)
 library(spocc)
+library(knitr)
+library(tidyr)
+library(raster)
+library(rasterVis)
+library(scales)
+library(rgeos)
+library(maptools)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
 
 
 
-# Results
 
 ```{r}
-8+8
+getData("ISO3")%>%
+  as.data.frame%>%
+  filter(NAME=="United States")
+us=getData('GADM', country='USA', level=2)
+us@data
+
+fl1<-subset(us,NAME_1=="Florida")
+fl1@data
+
+brwd<-subset(fl1,NAME_2=="Broward")
+mi_da<-subset(fl1,NAME_2=="Miami-Dade")
+plmbch<-subset(fl1, NAME_2=="Palm Beach")
+brwd %>% gSimplify(0.001) %>% plot()
+
+
+
 ```
 
+
+# Results
 
 (Show tables, plots, etc. and describe them.)
 

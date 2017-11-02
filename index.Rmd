@@ -12,6 +12,12 @@ For this final project, I am interested in exploring ways in which projected imp
 
 (Narrative and most code will go here.  Describe what you are doing and show how to do it (with code).)
 
+These are the steps I used:
+
+1. I downloaded the GADM boundary files for the three Florida counties mentioned above, then combined these three into a single polygon "comb".
+2. I downloaded the SRTM elevation data for the tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida, which I called "dem_fl". I then created a mask of the elevation data based on the "comb" boundaries, and cropped it to the "comb" plot extent, resulting in a plot of just the elevation data for the three counties.  
+
+
 
 
 
@@ -29,6 +35,8 @@ library(rasterVis)
 library(scales)
 library(rgeos)
 library(maptools)
+library(sp)
+library(sf)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
@@ -41,7 +49,6 @@ getData("ISO3")%>%
   as.data.frame%>%
   filter(NAME=="United States")
 us=getData('GADM', country='USA', level=2)
-head(us)
 
 fl1<-subset(us,NAME_1=="Florida")
 head(fl1)
@@ -49,10 +56,16 @@ head(fl1)
 brwd<-subset(fl1,NAME_2=="Broward")
 mi_da<-subset(fl1,NAME_2=="Miami-Dade")
 plmbch<-subset(fl1, NAME_2=="Palm Beach")
-brwd %>% gSimplify(0.001) %>% plot()
+comb<-rbind(brwd,mi_da,plmbch)
+plot(comb)
 
-dem_fl<-getData("SRTM",lat=16.26,lon=146.13)
-plot(dem_fl)
+dem_fl<-getData("SRTM",lon=-82.5,lat=27.5)
+
+miami_mask<-mask(dem_fl,comb)
+spplot(miami_mask)
+
+miami_cropmask<-crop(miami_mask,comb)
+spplot(miami_cropmask)
 
 
 

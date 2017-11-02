@@ -41,15 +41,18 @@ getData("ISO3")%>%
   as.data.frame%>%
   filter(NAME=="United States")
 us=getData('GADM', country='USA', level=2)
-us@data
+head(us)
 
 fl1<-subset(us,NAME_1=="Florida")
-fl1@data
+head(fl1)
 
 brwd<-subset(fl1,NAME_2=="Broward")
 mi_da<-subset(fl1,NAME_2=="Miami-Dade")
 plmbch<-subset(fl1, NAME_2=="Palm Beach")
 brwd %>% gSimplify(0.001) %>% plot()
+
+dem_fl<-getData("SRTM",lat=16.26,lon=146.13)
+plot(dem_fl)
 
 
 

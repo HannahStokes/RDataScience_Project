@@ -15,7 +15,8 @@ For this final project, I am interested in exploring ways in which projected imp
 These are the steps I used:
 
 1. I downloaded the GADM boundary files for the three Florida counties mentioned above, then combined these three into a single polygon "comb".
-2. I downloaded the SRTM elevation data for the tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida, which I called "dem_fl". I then created a mask of the elevation data based on the "comb" boundaries, and cropped it to the "comb" plot extent, resulting in a plot of just the elevation data for the three counties.  
+2. I downloaded the SRTM elevation data for the tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida, which I called "dem_fl". I then created a mask of the elevation data based on the "comb" boundaries, and cropped it to the "comb" plot extent, resulting in a plot of just the elevation data for the three counties.
+3. I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. 
 
 
 
@@ -62,10 +63,11 @@ plot(comb)
 dem_fl<-getData("SRTM",lon=-82.5,lat=27.5)
 
 miami_mask<-mask(dem_fl,comb)
-spplot(miami_mask)
 
 miami_cropmask<-crop(miami_mask,comb)
 spplot(miami_cropmask)
+
+spplot(stack(miami_cropmask<=2.76,miami_cropmask<=5, miami_cropmask<=10.97))
 
 
 

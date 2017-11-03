@@ -314,6 +314,7 @@ div.tocify {
 <ol style="list-style-type: decimal">
 <li>I downloaded the GADM boundary files for the three Florida counties mentioned above, then combined these three into a single polygon “comb”.</li>
 <li>I downloaded the SRTM elevation data for the tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida, which I called “dem_fl”. I then created a mask of the elevation data based on the “comb” boundaries, and cropped it to the “comb” plot extent, resulting in a plot of just the elevation data for the three counties.</li>
+<li>I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios.</li>
 </ol>
 <p>Load any required packages in a code chunk (you may need to install some packages):</p>
 <pre class="r"><code>library(dplyr)
@@ -362,10 +363,11 @@ plot(comb)</code></pre>
 <pre class="r"><code>dem_fl&lt;-getData(&quot;SRTM&quot;,lon=-82.5,lat=27.5)
 
 miami_mask&lt;-mask(dem_fl,comb)
-spplot(miami_mask)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
-<pre class="r"><code>miami_cropmask&lt;-crop(miami_mask,comb)
+
+miami_cropmask&lt;-crop(miami_mask,comb)
 spplot(miami_cropmask)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<pre class="r"><code>spplot(stack(miami_cropmask&lt;=2.76,miami_cropmask&lt;=5, miami_cropmask&lt;=10.97))</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
 </div>
 <div id="results" class="section level1">

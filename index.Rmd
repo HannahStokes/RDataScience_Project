@@ -2,9 +2,7 @@
 title: "Social Disparities of Sea Level Rise in Miami?"
 author: "Hannah Stokes"
 subtitle: Final Project GEO 503
-output:
-  html_document: default
-  pdf_document: default
+
 ---
 
 # Introduction
@@ -33,6 +31,7 @@ library(rgeos)
 library(maptools)
 library(sp)
 library(rgdal)
+library(sf)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
@@ -53,8 +52,7 @@ comb<-rbind(brwd,mi_da,plmbch)
 
 2. Next, I downloaded the NASA Shuttle Radar Topographic Mission (SRTM) elevation data for the SRTM tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida. I then created a mask of the Florida elevation data based on the polygon boundary from step 1, and cropped the elevation data to the polygon extent, resulting in a plot of just the elevation data for the three counties. 
 
-```{r}
-warning=FALSE
+```{r warning=FALSE}
 dem_fl<-getData("SRTM",lon=-82.5,lat=27.5)
 miami_mask<-mask(dem_fl,comb)
 miami_cropmask<-crop(miami_mask,comb)
@@ -66,8 +64,8 @@ spplot(miami_cropmask, main="Elevation of Southern Florida (meters)")
 
 4. Next, I created a map of the socio-economic data (in this case, just income data). I downloaded the block group boundaries from TIGER for all of Florida from 2015, and also downloaded an excel data file of median household income by block group for the 3 Florida counties from the US Census Bureau Factfinder website, from the 2015 ACS.
 
-```{r}
-message=F
+```{r message=F}
+
 wd="C:/Users/Hannah/Documents/School/UB/R/Final Project/Data/Florida Data"
 tiger_bg_bound<-readOGR(file.path(wd,"tl_2015_12_bg_2015FloridaBG"),layer="tl_2015_12_bg")
 income_3county <- read.csv(file.path(wd,"ACS_15_5YR_B19013_3counties_Income/ACS_15_5YR_B19013_with_ann.csv"),header = TRUE)

@@ -357,10 +357,21 @@ tiger_bg_bound&lt;-readOGR(file.path(wd,&quot;tl_2015_12_bg_2015FloridaBG&quot;)
 ## with 11442 features
 ## It has 12 fields
 ## Integer64 fields read as strings:  ALAND AWATER</code></pre>
-<pre class="r"><code>income_3county &lt;- read.csv(file.path(wd,&quot;ACS_15_5YR_B19013_3counties_Income/ACS_15_5YR_B19013_with_ann.csv&quot;),header = TRUE)</code></pre>
+<pre class="r"><code>income_3county &lt;- read.csv((&quot;ACS_15_5YR_B19013_with_ann.csv&quot;),header = TRUE)</code></pre>
 <ol start="5" style="list-style-type: decimal">
-<li><p>I joined the income data to the boundary file, in order to be able to map the income data by block group. I ran into an error in the process of trying to map this data, which I discovered was due to R reading the income column in the original csv file from Factfinder as factor data, rather than numeric values. My attempts to convert the income column to numeric have resulted in the error of the income being read incorrectly, which shows up in the income map as several distinct categories including 1,000 and 2,000, which do not match the real incomes.</p></li>
-<li><p>I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but my difficulties with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R.</p></li>
+<li>I joined the income data to the boundary file, in order to be able to map the income data by block group. I ran into an error in the process of trying to map this data, which I discovered was due to R reading the income column in the original csv file from Factfinder as factor data, rather than numeric values. My attempts to convert the income column to numeric have resulted in the error of the income being read incorrectly, which shows up in the income map as several distinct categories including 1,000 and 2,000, which do not match the real incomes.</li>
+</ol>
+<pre class="r"><code>income_map &lt;- merge(tiger_bg_bound,income_3county,by.x=&quot;GEOID&quot;,by.y=&quot;GEO.id2&quot;)
+income_map2 &lt;- income_map[complete.cases(income_map@data), ]
+income_map3 &lt;- fortify(income_map2)</code></pre>
+<pre><code>## Regions defined for each Polygons</code></pre>
+<pre class="r"><code>income_map2$id &lt;- row.names(income_map2)
+income_map3 &lt;- left_join(income_map3,income_map2@data,by=&quot;id&quot;)
+
+income_map3$HD01_VD01 &lt;- as.numeric(as.character(income_map3$HD01_VD01))</code></pre>
+<pre><code>## Warning: NAs introduced by coercion</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but my difficulties with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R.</li>
 </ol>
 </div>
 <div id="results" class="section level1">
@@ -368,6 +379,9 @@ tiger_bg_bound&lt;-readOGR(file.path(wd,&quot;tl_2015_12_bg_2015FloridaBG&quot;)
 <p>The results of my methods detailed above are essentially two plots that can be visually compared for possible correlations:</p>
 <pre class="r"><code>spplot(stack(miami_cropmask&lt;=2.76,miami_cropmask&lt;=5, miami_cropmask&lt;=10.97), main=&quot;Areas at Risk to Flooding under Three Sea Level Rise Scenarios Plus Storm Surge (2.76m, 5m, 10.97m&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>plot_income3 &lt;- ggplot(income_map3,aes(x=long,y=lat,order=order,group=group,fill=HD01_VD01))+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;)+coord_map()
+plot_income3</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>

@@ -1,30 +1,25 @@
 ---
 title: "Social Disparities of Sea Level Rise in Miami?"
-author: Hannah Stokes
+author: "Hannah Stokes"
 subtitle: Final Project GEO 503
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 # Introduction
-For this final project, I am interested in exploring ways in which projected impacts of sea level rise (under different scenarios) along the US coast may demonstrate disparities in affected demographic groups. I look at three Florida counties that cover the extensive stretch of Miami urban area: Miami-Dade County, Broward County, and Palm Beach County. I will compare projected spatial impacts of sea level rise to spatial socio-economic data from the US Decennial Census to see if there are any correlations between sea-level rise (and subsequent risk from storm surges) and socio-economic indicators. My inspiration for this project came from reading an article about how rising sea levels and flooding in Atlantic City is disproportionately affecting low-income residents, and the suggestion that this may be the case in other coastal US cities (Upton, 2017). Additionally, we have seen tremendous damage from hurricanes in the Caribbean and Gulf of Mexico in the past few weeks. The increasing frequency of strong hurricanes likely relates to climate change, and this will couple with rising sea levels in causing further damage to coasts and islands. I hypothesize that I will find greater levels of flood/storm surge risk to lower-income neighborhoods, and perhaps to ethnic minority neighborhoods, or the exact opposite due to high-value coastal properties, but less correlation for middle-income communities.  
+Projected impacts of sea level rise (under different scenarios) along the US coast may demonstrate differential impacts in affected demographic groups. In this project, I look at three Florida counties that cover the extensive stretch of the Miami urban area: Miami-Dade County, Broward County, and Palm Beach County. I compare projected spatial impacts of sea level rise to spatial socio-economic data from the US 5-year American Community Survey (ACS) to detect any possible correlations between sea-level rise (and subsequent risk from storm surges) and socio-economic indicators. An investigative article published through the group Climate Central details how rising sea levels and flooding in Atlantic City is disproportionately affecting low-income residents, and suggests that this may be the case in other coastal US cities (Upton, 2017). Additionally, this year we have seen tremendous damage from hurricanes in the Caribbean and Gulf of Mexico. The increasing frequency of strong hurricanes likely relates to climate change, and this will couple with rising sea levels in causing further damage to coasts and islands in the future. I hypothesized initially that I would find find greater levels of flood/storm surge risk to lower-income neighborhoods, and perhaps to ethnic minority neighborhoods, or that I might find the exact opposite due to high-value coastal properties, but predicted that I would find a weaker correlation for middle-income communities. There are also significant human elements that impact overall vulnerability to flood damage, including man-made systems for controlling flows of water, building materials, permeability of the ground, insurance coverage, and others, but I did not include them in this study.   
 
 
 # Materials and methods
 
-(Narrative and most code will go here.  Describe what you are doing and show how to do it (with code).)
-
-These are the steps I used:
-
-1. I downloaded the GADM boundary files for the three Florida counties mentioned above, then combined these three into a single polygon "comb".
-2. I downloaded the SRTM elevation data for the tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida, which I called "dem_fl". I then created a mask of the elevation data based on the "comb" boundaries, and cropped it to the "comb" plot extent, resulting in a plot of just the elevation data for the three counties.
-3. I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. 
+My approach to addressing my research question entailed several steps, as outlined below. In short, the approach was to access both elevation and income data for the three Florida counties, and compare the two based on projected sea level rise scenarios. 
 
 
-
-
-
-Load any required packages in a code chunk (you may need to install some packages):
+I loaded the following packages in order to complete the project:
 
 ```{r, message=F, warning=F}
+
 library(dplyr)
 library(ggplot2)
 library(maps)
@@ -37,54 +32,84 @@ library(scales)
 library(rgeos)
 library(maptools)
 library(sp)
-library(sf)
+library(rgdal)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
 
-
-
+1. First, I downloaded the Global Administrative Areas (GADM) boundary files for the three Florida counties named above, and then combined these three into a single polygon using the "rbind" operation.
 
 ```{r}
-getData("ISO3")%>%
-  as.data.frame%>%
-  filter(NAME=="United States")
+
 us=getData('GADM', country='USA', level=2)
 
 fl1<-subset(us,NAME_1=="Florida")
-head(fl1)
-
 brwd<-subset(fl1,NAME_2=="Broward")
 mi_da<-subset(fl1,NAME_2=="Miami-Dade")
 plmbch<-subset(fl1, NAME_2=="Palm Beach")
 comb<-rbind(brwd,mi_da,plmbch)
-plot(comb)
 
+```
+
+2. Next, I downloaded the NASA Shuttle Radar Topographic Mission (SRTM) elevation data for the SRTM tile containing Florida, based on the centerpoint coordinates of that tile. This gave me elevation data for all of Florida. I then created a mask of the Florida elevation data based on the polygon boundary from step 1, and cropped the elevation data to the polygon extent, resulting in a plot of just the elevation data for the three counties. 
+
+```{r}
+warning=FALSE
 dem_fl<-getData("SRTM",lon=-82.5,lat=27.5)
-
 miami_mask<-mask(dem_fl,comb)
-
 miami_cropmask<-crop(miami_mask,comb)
-spplot(miami_cropmask)
+spplot(miami_cropmask, main="Elevation of Southern Florida (meters)")
 
-spplot(stack(miami_cropmask<=2.76,miami_cropmask<=5, miami_cropmask<=10.97))
+```
+
+3. Third, I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. My attempts to locate historical storm surge ranges for the three counties yielded very little information. I was only able to find a list from the National Weather Service stating that the largest storm surge in Florida was 15ft in 1926, and an article (cited below) that looks at prehistorical storm surge evidence for the Gulf Florida coast, suggesting that storm surges could potentially be far worse than anticipated. With the difficulty of finding an exact storm surge range for these counties, I substituted ranges known ranges from Bangladesh in order to complete the model (Karim & Mimura, 2008).
+
+4. Next, I created a map of the socio-economic data (in this case, just income data). I downloaded the block group boundaries from TIGER for all of Florida from 2015, and also downloaded an excel data file of median household income by block group for the 3 Florida counties from the US Census Bureau Factfinder website, from the 2015 ACS.
+
+```{r}
+message=F
+wd="C:/Users/Hannah/Documents/School/UB/R/Final Project/Data/Florida Data"
+tiger_bg_bound<-readOGR(file.path(wd,"tl_2015_12_bg_2015FloridaBG"),layer="tl_2015_12_bg")
+income_3county <- read.csv(file.path(wd,"ACS_15_5YR_B19013_3counties_Income/ACS_15_5YR_B19013_with_ann.csv"),header = TRUE)
+
+```
+
+5. I joined the income data to the boundary file, in order to be able to map the income data by block group. I ran into an error in the process of trying to map this data, which I discovered was due to R reading the income column in the original csv file from Factfinder as factor data, rather than numeric values. My attempts to convert the income column to numeric have resulted in the error of the income being read incorrectly, which shows up in the income map as several distinct categories including 1,000 and 2,000, which do not match the real incomes. 
+
+```{r}
+
+
+
+```
+
+6. I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but my difficulties with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R. 
+
+
+# Results
+
+The results of my methods detailed above are essentially two plots that can be visually compared for possible correlations: 
+
+```{r}
+
+spplot(stack(miami_cropmask<=2.76,miami_cropmask<=5, miami_cropmask<=10.97), main="Areas at Risk to Flooding under Three Sea Level Rise Scenarios Plus Storm Surge (2.76m, 5m, 10.97m")
 
 
 
 ```
 
 
-# Results
-
-(Show tables, plots, etc. and describe them.)
-
 # Conclusions
 
-(What have you learned?  Are there any broader implications?)
+Currently, I am only able to visually compare the income and elevation data for the three scenarios. The hope was to be able to run a statistical comparison, and to bring in additional socio-economic factors. To do so, I would need to reconcile the two kinds of maps, because the boundary files are from different data sources (TIGER, versus GADM), so they may not map on to each other correctly. Thus, from what I have been able to map, I am unable to draw clear conclusions about the relationships between income and risk to flooding. However, what is very clear from having mapped the three scenarios for sea level rise is that under the most extreme scenario, almost all of Florida is affected by sea level rise, thus making the comparison to income by block group an irrelevant question. What is interesting in the second scenario is that most of the remaining unaffected area is the area of the largest population density, with instead the low-population areas being almost entirely affected by sea level rise (if the water is able to reach inland). This would likely affect farmland and conserved areas, but not many Florida residences. The question of correlations between affected areas and income/race might be most relevant for the second scenario, and it would also be helpful to look at agricultural production that would be affected.  
 
 # References
+
+Karim, M. F., & Mimura, N. (2008). Impacts of climate change and sea-level rise on cyclonic storm surge floods in Bangladesh. Global Environmental Change, 18(3), 490-500.
+
 Kulp, S., & Strauss, B. H. (2017). Rapid escalation of coastal flood exposure in US municipalities from sea
 level rise. Climate Change, 142, 477-489.
+
+Lin, N., Lane, P., Emanuel, K. A., Sullivan, R. M., & Donnelly, J. P. (2014). Heightened hurricane surge risk in northwest Florida revealed from climatological-hydrodynamic modeling and paleorecord reconstruction. Journal of Geophysical Research: Atmospheres, 119(14), 8606-8623.
 
 Tebaldi, C., Strauss, B. H., & Zervas, C. E. (2012). Modelling sea level rise impacts on storm surges along US coasts. Environmental Research Letters, 7, 1-11. 
 

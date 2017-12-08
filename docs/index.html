@@ -344,23 +344,25 @@ comb&lt;-rbind(brwd,mi_da,plmbch)</code></pre>
 <pre class="r"><code>dem_fl&lt;-getData(&quot;SRTM&quot;,lon=-82.5,lat=27.5)
 miami_mask&lt;-mask(dem_fl,comb)
 miami_cropmask&lt;-crop(miami_mask,comb)
-spplot(miami_cropmask, main=&quot;Elevation of Southern Florida (meters)&quot;)</code></pre>
+spplot(miami_cropmask, main=&quot;Elevation of Southern Florida (meters)&quot;,col.regions=terrain.colors(51),cuts=50)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<ol start="3" style="list-style-type: decimal">
+<li>Third, I created a set of side-by-side plots (plot in results below) showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. My attempts to locate historical storm surge ranges for the three counties yielded very little information. I was only able to find a list from the National Weather Service stating that the largest storm surge in Florida was 15ft in 1926, and an article (cited below) that looks at prehistorical storm surge evidence for the Gulf Florida coast, suggesting that storm surges could potentially be far worse than anticipated. With the difficulty of finding an exact storm surge range for these counties, I substituted ranges known ranges from Bangladesh in order to complete the model (Karim &amp; Mimura, 2008).</li>
+</ol>
 <pre class="r"><code>layer1 &lt;- miami_cropmask&lt;=2.76
 names(layer1)=&quot;Sea Rise 2.76m&quot;
 layer2 &lt;- miami_cropmask&lt;=5
 names(layer2)=&quot;Sea Rise 5m&quot;
 layer3 &lt;- miami_cropmask&lt;=10.97
 names(layer3)=&quot;Sea Rise 10.97m&quot;</code></pre>
-<ol start="3" style="list-style-type: decimal">
-<li><p>Third, I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. My attempts to locate historical storm surge ranges for the three counties yielded very little information. I was only able to find a list from the National Weather Service stating that the largest storm surge in Florida was 15ft in 1926, and an article (cited below) that looks at prehistorical storm surge evidence for the Gulf Florida coast, suggesting that storm surges could potentially be far worse than anticipated. With the difficulty of finding an exact storm surge range for these counties, I substituted ranges known ranges from Bangladesh in order to complete the model (Karim &amp; Mimura, 2008).</p></li>
-<li><p>Next, I created a map of the socio-economic data (in this case, just income data). I downloaded the block group boundaries from TIGER for all of Florida from 2015, and also downloaded an excel data file of median household income by block group for the 3 Florida counties from the US Census Bureau Factfinder website, from the 2015 ACS.</p></li>
+<ol start="4" style="list-style-type: decimal">
+<li>Next, I created a map of the socio-economic data (in this case, just income data). I downloaded the block group boundaries from TIGER for all of Florida from 2015, and also downloaded an excel data file of median household income by block group for the 3 Florida counties from the US Census Bureau Factfinder website, from the 2015 ACS.</li>
 </ol>
 <pre class="r"><code>wd=&quot;C:/Users/Hannah/Documents/School/UB/R/Final Project/Data/Florida Data&quot;
 tiger_bg_bound&lt;-readOGR(file.path(wd,&quot;tl_2015_12_bg_2015FloridaBG&quot;),layer=&quot;tl_2015_12_bg&quot;)
 income_3county &lt;- read.csv((&quot;ACS_15_5YR_B19013_with_ann.csv&quot;),header = TRUE)</code></pre>
 <ol start="5" style="list-style-type: decimal">
-<li>I joined the income data to the boundary file, in order to be able to map the income data by block group. I ran into an error in the process of trying to map this data, which I discovered was due to R reading the income column in the original csv file from Factfinder as factor data, rather than numeric values. My attempts to convert the income column to numeric have resulted in the error of the income being read incorrectly, which shows up in the income map as several distinct categories including 1,000 and 2,000, which do not match the real incomes.</li>
+<li>I joined the income data to the boundary file, in order to be able to map the income data by block group. I needed to convert the income column from factor to numeric in order to be able to use the data for my purposes.</li>
 </ol>
 <pre class="r"><code>income_map &lt;- merge(tiger_bg_bound,income_3county,by.x=&quot;GEOID&quot;,by.y=&quot;GEO.id2&quot;)
 income_map2 &lt;- income_map[complete.cases(income_map@data), ]
@@ -370,7 +372,7 @@ income_map3 &lt;- left_join(income_map3,income_map2@data,by=&quot;id&quot;)
 
 income_map3$HD01_VD01 &lt;- as.numeric(as.character(income_map3$HD01_VD01))</code></pre>
 <ol start="6" style="list-style-type: decimal">
-<li>I created related map…</li>
+<li>Using the second sea level rise scenario (which we can visually see yields the greatest variability in areas at risk of flooding - the first scenario yields very little, and in the third scenario almost all of southern Florida is at risk), I calculated and mapped (below in results) the proportion of raster cells at risk of flooding for each block group, based on overlaying the raster elevation data with the block group income data.</li>
 </ol>
 <pre class="r"><code>income_map4 &lt;- spTransform(income_map2, projection(layer2))
 income_map4$HD01_VD01 &lt;- as.numeric(as.character(income_map4$HD01_VD01))
@@ -390,21 +392,21 @@ income_map4_2 &lt;- fortify(income_map4)
 income_map4$id &lt;- row.names(income_map4)
 income_map4_2 &lt;- left_join(income_map4_2,income_map4@data,by=&quot;id&quot;)</code></pre>
 <ol start="7" style="list-style-type: decimal">
-<li>I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but my difficulties with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R.</li>
+<li>I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but challenges in working with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R.</li>
 </ol>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<p>The results of my methods detailed above are essentially two plots that can be visually compared for possible correlations:</p>
-<p>Description…</p>
+<p>The first map I was able to create shows the distribution of income by block group for the three counties:</p>
 <pre class="r"><code>plot_income3 &lt;- ggplot(income_map3,aes(x=long,y=lat,order=order,group=group,fill=HD01_VD01))+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;,name=&quot;Income (USD)&quot;)+coord_map()+ggtitle(&quot;2015 Household Income by Block Group&quot;)
 plot_income3</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /> Description….</p>
-<pre class="r"><code>spplot(stack(layer1,layer2,layer3), main=&quot;Flood Risk Area under Three Sea Level Rise Scenarios Plus Storm Surge&quot;,col.regions=brewer.pal(9,&quot;YlGnBu&quot;), cuts = 8)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>Description…</p>
+<p>The next map shows the areas that would be at risk for flooding under the three different sea level rise scenarios, as described in my methods:</p>
+<pre class="r"><code>spplot(stack(layer1,layer2,layer3), main=&quot;Flood Risk Area under Three Sea Level Rise Scenarios Plus Storm Surge&quot;,col.regions=brewer.pal(9,&quot;YlGnBu&quot;), cuts = 8)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Using the information from the second scenario map (5m), we can map the proportion of raster cells falling within each block group that are at risk of flooding. Darker red block groups have a higher number of cells within it that are areas at risk of flooding in proportion to the total number of cells in that block group:</p>
 <pre class="r"><code>ggplot(income_map4_2,aes(x=long,y=lat,order=order,group=group,fill=Sea.Rise.5m))+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;,name=&quot;Proportion&quot;)+coord_map()+ggtitle(&quot;Proportion of Area at Risk Per Block&quot;)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /> Description….</p>
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /> Based on the proportion of cells at risk of flooding within each block group, I calculated the correlation between proportion and income. While the results are significant (low p-value), we can also see from these results that the R-squared value is extremely low, showing a very weak relationship between the two variables:</p>
 <pre class="r"><code>lm_layer2 &lt;-  lm(HD01_VD01 ~ Sea.Rise.5m, data = income_map4)
 summary(lm_layer2)</code></pre>
 <pre><code>## 
@@ -426,17 +428,17 @@ summary(lm_layer2)</code></pre>
 ##   (56 observations deleted due to missingness)
 ## Multiple R-squared:  0.02591,    Adjusted R-squared:  0.02561 
 ## F-statistic: 86.64 on 1 and 3257 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>Description…</p>
+<p>Plotting the two variables together helps to visually demonstrate the weak relationship found from calculating their correlation:</p>
 <pre class="r"><code>ggplot(income_map4@data, aes(x = HD01_VD01, y = Sea.Rise.5m)) + 
   geom_point(color = &quot;blue&quot;) +
   geom_smooth(method = lm, color = &quot;red&quot;) +
   labs(x = &quot;Income&quot;, y = &quot;Proportion&quot;) +
   ggtitle(&quot;Relationship between Income and Proportion at Risk&quot;)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>
-<p>Currently, I am only able to visually compare the income and elevation data for the three scenarios. The hope was to be able to run a statistical comparison, and to bring in additional socio-economic factors. To do so, I would need to reconcile the two kinds of maps, because the boundary files are from different data sources (TIGER, versus GADM), so they may not map on to each other correctly. Thus, from what I have been able to map, I am unable to draw clear conclusions about the relationships between income and risk to flooding. However, what is very clear from having mapped the three scenarios for sea level rise is that under the most extreme scenario, almost all of Florida is affected by sea level rise, thus making the comparison to income by block group an irrelevant question. What is interesting in the second scenario is that most of the remaining unaffected area is the area of the largest population density, with instead the low-population areas being almost entirely affected by sea level rise (if the water is able to reach inland). This would likely affect farmland and conserved areas, but not many Florida residences. The question of correlations between affected areas and income/race might be most relevant for the second scenario, and it would also be helpful to look at agricultural production that would be affected.</p>
+<p>From these results I can conclude that there is a very weak relationship, if any, between income per block group and areas at risk for flooding under the second sea level rise scenario. What is also very clear from having mapped the three scenarios for sea level rise is that under the most extreme scenario, almost all of Florida is affected by sea level rise, thus making the comparison to income by block group an irrelevant question. What is interesting in the second scenario is that most of the remaining unaffected area is the area of the largest population density, with instead the low-population areas being almost entirely affected by sea level rise (if the water is able to reach inland). This would likely affect farmland and conserved areas, but not many Florida residences. The question of correlations between affected areas and income/race might be most relevant for the second scenario, and it would also be helpful to look at agricultural production that would be affected.</p>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>

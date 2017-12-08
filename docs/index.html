@@ -327,7 +327,7 @@ library(maptools)
 library(sp)
 library(rgdal)
 library(sf)
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling</code></pre>
+knitr::opts_chunk$set(cache=TRUE,warning=FALSE, message=FALSE, echo=TRUE)  # cache the results for quick compiling</code></pre>
 <ol style="list-style-type: decimal">
 <li>First, I downloaded the Global Administrative Areas (GADM) boundary files for the three Florida counties named above, and then combined these three into a single polygon using the “rbind” operation.</li>
 </ol>
@@ -346,18 +346,19 @@ miami_mask&lt;-mask(dem_fl,comb)
 miami_cropmask&lt;-crop(miami_mask,comb)
 spplot(miami_cropmask, main=&quot;Elevation of Southern Florida (meters)&quot;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>layer1 &lt;- miami_cropmask&lt;=2.76
+names(layer1)=&quot;Sea Rise 2.76m&quot;
+layer2 &lt;- miami_cropmask&lt;=5
+names(layer2)=&quot;Sea Rise 5m&quot;
+layer3 &lt;- miami_cropmask&lt;=10.97
+names(layer3)=&quot;Sea Rise 10.97m&quot;</code></pre>
 <ol start="3" style="list-style-type: decimal">
 <li><p>Third, I created a simple set of side-by-side plots showing the land under three different elevations, based on the storm surge and sea level rise projected scenarios. My attempts to locate historical storm surge ranges for the three counties yielded very little information. I was only able to find a list from the National Weather Service stating that the largest storm surge in Florida was 15ft in 1926, and an article (cited below) that looks at prehistorical storm surge evidence for the Gulf Florida coast, suggesting that storm surges could potentially be far worse than anticipated. With the difficulty of finding an exact storm surge range for these counties, I substituted ranges known ranges from Bangladesh in order to complete the model (Karim &amp; Mimura, 2008).</p></li>
 <li><p>Next, I created a map of the socio-economic data (in this case, just income data). I downloaded the block group boundaries from TIGER for all of Florida from 2015, and also downloaded an excel data file of median household income by block group for the 3 Florida counties from the US Census Bureau Factfinder website, from the 2015 ACS.</p></li>
 </ol>
 <pre class="r"><code>wd=&quot;C:/Users/Hannah/Documents/School/UB/R/Final Project/Data/Florida Data&quot;
-tiger_bg_bound&lt;-readOGR(file.path(wd,&quot;tl_2015_12_bg_2015FloridaBG&quot;),layer=&quot;tl_2015_12_bg&quot;)</code></pre>
-<pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: &quot;C:/Users/Hannah/Documents/School/UB/R/Final Project/Data/Florida Data/tl_2015_12_bg_2015FloridaBG&quot;, layer: &quot;tl_2015_12_bg&quot;
-## with 11442 features
-## It has 12 fields
-## Integer64 fields read as strings:  ALAND AWATER</code></pre>
-<pre class="r"><code>income_3county &lt;- read.csv((&quot;ACS_15_5YR_B19013_with_ann.csv&quot;),header = TRUE)</code></pre>
+tiger_bg_bound&lt;-readOGR(file.path(wd,&quot;tl_2015_12_bg_2015FloridaBG&quot;),layer=&quot;tl_2015_12_bg&quot;)
+income_3county &lt;- read.csv((&quot;ACS_15_5YR_B19013_with_ann.csv&quot;),header = TRUE)</code></pre>
 <ol start="5" style="list-style-type: decimal">
 <li>I joined the income data to the boundary file, in order to be able to map the income data by block group. I ran into an error in the process of trying to map this data, which I discovered was due to R reading the income column in the original csv file from Factfinder as factor data, rather than numeric values. My attempts to convert the income column to numeric have resulted in the error of the income being read incorrectly, which shows up in the income map as several distinct categories including 1,000 and 2,000, which do not match the real incomes.</li>
 </ol>
@@ -369,17 +370,69 @@ income_map3 &lt;- left_join(income_map3,income_map2@data,by=&quot;id&quot;)
 
 income_map3$HD01_VD01 &lt;- as.numeric(as.character(income_map3$HD01_VD01))</code></pre>
 <ol start="6" style="list-style-type: decimal">
+<li>I created related map…</li>
+</ol>
+<pre class="r"><code>income_map4 &lt;- spTransform(income_map2, projection(layer2))
+income_map4$HD01_VD01 &lt;- as.numeric(as.character(income_map4$HD01_VD01))
+
+l2 &lt;- as.data.frame(layer2, xy = TRUE, na.rm = TRUE, centroids = TRUE)
+coordinates(l2) &lt;- ~ x + y
+proj4string(l2) &lt;- projection(layer2)
+
+zone_over&lt;- over(income_map4, l2, fn = mean)
+
+income_map4$id &lt;- sapply(slot(income_map4, &quot;polygons&quot;), slot, &quot;ID&quot;)
+zone_over$id &lt;- row.names(zone_over)
+
+income_map4 &lt;- merge(income_map4, zone_over, by = &quot;id&quot;, all.x = TRUE)
+
+income_map4_2 &lt;- fortify(income_map4)
+income_map4$id &lt;- row.names(income_map4)
+income_map4_2 &lt;- left_join(income_map4_2,income_map4@data,by=&quot;id&quot;)</code></pre>
+<ol start="7" style="list-style-type: decimal">
 <li>I wanted to also include a map of the sea level rise data from NOAA for the 3 counties, but my difficulties with the socio-economic data did not allow me enough time to also work on successfully using this NOAA data in R.</li>
 </ol>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
 <p>The results of my methods detailed above are essentially two plots that can be visually compared for possible correlations:</p>
-<pre class="r"><code>spplot(stack(miami_cropmask&lt;=2.76,miami_cropmask&lt;=5, miami_cropmask&lt;=10.97), main=&quot;Flood Risk Area under Three Sea Level Rise Scenarios Plus Storm Surge&quot;)</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-<pre class="r"><code>plot_income3 &lt;- ggplot(income_map3,aes(x=long,y=lat,order=order,group=group,fill=HD01_VD01), main=&quot;2015 Household Income by Block Group&quot;)+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;,name=&quot;Income (USD)&quot;)+coord_map()
+<p>Description…</p>
+<pre class="r"><code>plot_income3 &lt;- ggplot(income_map3,aes(x=long,y=lat,order=order,group=group,fill=HD01_VD01))+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;,name=&quot;Income (USD)&quot;)+coord_map()+ggtitle(&quot;2015 Household Income by Block Group&quot;)
 plot_income3</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /> Description….</p>
+<pre class="r"><code>spplot(stack(layer1,layer2,layer3), main=&quot;Flood Risk Area under Three Sea Level Rise Scenarios Plus Storm Surge&quot;,col.regions=brewer.pal(9,&quot;YlGnBu&quot;), cuts = 8)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Description…</p>
+<pre class="r"><code>ggplot(income_map4_2,aes(x=long,y=lat,order=order,group=group,fill=Sea.Rise.5m))+geom_polygon()+scale_fill_gradient(low=&quot;white&quot;,high=&quot;darkred&quot;,na.value = &quot;grey50&quot;,name=&quot;Proportion&quot;)+coord_map()+ggtitle(&quot;Proportion of Area at Risk Per Block&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /> Description….</p>
+<pre class="r"><code>lm_layer2 &lt;-  lm(HD01_VD01 ~ Sea.Rise.5m, data = income_map4)
+summary(lm_layer2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = HD01_VD01 ~ Sea.Rise.5m, data = income_map4)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -63625 -21964  -7351  13576 191513 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  53736.6      633.2  84.862   &lt;2e-16 ***
+## Sea.Rise.5m  44564.7     4787.7   9.308   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 31820 on 3257 degrees of freedom
+##   (56 observations deleted due to missingness)
+## Multiple R-squared:  0.02591,    Adjusted R-squared:  0.02561 
+## F-statistic: 86.64 on 1 and 3257 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Description…</p>
+<pre class="r"><code>ggplot(income_map4@data, aes(x = HD01_VD01, y = Sea.Rise.5m)) + 
+  geom_point(color = &quot;blue&quot;) +
+  geom_smooth(method = lm, color = &quot;red&quot;) +
+  labs(x = &quot;Income&quot;, y = &quot;Proportion&quot;) +
+  ggtitle(&quot;Relationship between Income and Proportion at Risk&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>

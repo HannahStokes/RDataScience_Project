@@ -142,11 +142,13 @@ Using the information from the second scenario map (5m), we can map the proporti
 ```{r}
 ggplot(income_map4_2,aes(x=long,y=lat,order=order,group=group,fill=Sea.Rise.5m))+geom_polygon()+scale_fill_gradient(low="white",high="darkred",na.value = "grey50",name="Proportion")+coord_map()+ggtitle("Proportion of Area at Risk Per Block")
 ```
+
 Based on the proportion of cells at risk of flooding within each block group, I calculated the correlation between proportion and income. While the results are significant (low p-value), we can also see from these results that the R-squared value is extremely low, showing a very weak relationship between the two variables: 
 ```{r}
 lm_layer2 <-  lm(HD01_VD01 ~ Sea.Rise.5m, data = income_map4)
 summary(lm_layer2)
 ```
+
 Plotting the two variables together helps to visually demonstrate the weak relationship found from calculating their correlation: 
 ```{r}
 ggplot(income_map4@data, aes(x = HD01_VD01, y = Sea.Rise.5m)) + 
